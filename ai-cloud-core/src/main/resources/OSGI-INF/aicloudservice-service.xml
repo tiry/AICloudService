@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ai.AICloudService" version="1.0">
+
+  <implementation class="org.nuxeo.ai.service.AICloudServiceImpl" />
+
+  <service>
+    <provide interface="org.nuxeo.ai.service.AICloudService" />
+  </service>
+</component>

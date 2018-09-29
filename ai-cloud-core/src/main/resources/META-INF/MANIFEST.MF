@@ -1,0 +1,11 @@
+Bundle-ActivationPolicy: lazy
+Bundle-ClassPath: .
+Manifest-Version: 1.0
+Bundle-Vendor: org.nuxeo.ai
+Bundle-Version: 1.0.0
+Bundle-Name: ai-cloud-core
+Bundle-ManifestVersion: 2
+Bundle-SymbolicName: org.nuxeo.ai.ai-cloud-core;singleton=true
+Nuxeo-Component: OSGI-INF/operation-contrib.xml,
+ OSGI-INF/aicloudservice-service.xml
+ OSGI-INF/contenttypes-contrib.xml
