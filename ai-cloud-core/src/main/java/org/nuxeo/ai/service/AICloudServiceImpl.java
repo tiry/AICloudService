@@ -1,60 +1,23 @@
 package org.nuxeo.ai.service;
 
+import java.io.IOException;
+import java.net.URI;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.repository.RepositoryManager;
+import org.nuxeo.ecm.core.blob.BlobManager;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 public class AICloudServiceImpl extends DefaultComponent implements AICloudService {
 
-    /**
-     * Component activated notification.
-     * Called when the component is activated. All component dependencies are resolved at that moment.
-     * Use this method to initialize the component.
-     *
-     * @param context the component context.
-     */
-    @Override
-    public void activate(ComponentContext context) {
-        super.activate(context);
-    }
-
-    /**
-     * Component deactivated notification.
-     * Called before a component is unregistered.
-     * Use this method to do cleanup if any and free any resources held by the component.
-     *
-     * @param context the component context.
-     */
-    @Override
-    public void deactivate(ComponentContext context) {
-        super.deactivate(context);
-    }
-
-    /**
-     * Application started notification.
-     * Called after the application started.
-     * You can do here any initialization that requires a working application
-     * (all resolved bundles and components are active at that moment)
-     *
-     * @param context the component context. Use it to get the current bundle context
-     * @throws Exception
-     */
-    @Override
-    public void applicationStarted(ComponentContext context) {
-        // do nothing by default. You can remove this method if not used.
-    }
-
-    @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        // Add some logic here to handle contributions
-    }
-
-    @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        // Logic to do when unregistering any contribution
-    }
-
+	protected static Log log = LogFactory.getLog(AICloudServiceImpl.class);
+	
 	@Override
 	public Object getCorpusStatistics(DocumentModel corpus) {
 		// TODO Auto-generated method stub
@@ -63,6 +26,9 @@ public class AICloudServiceImpl extends DefaultComponent implements AICloudServi
 
 	@Override
 	public DocumentModel publishModel(DocumentModel model) {
+		if (model.isCheckedOut()) {
+			
+		}
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -81,7 +47,25 @@ public class AICloudServiceImpl extends DefaultComponent implements AICloudServi
 
 	@Override
 	public Object trainModel(DocumentModel model, DocumentModel corpus) {
-		// TODO Auto-generated method stub
+
+		BlobManager bm = Framework.getService(BlobManager.class);
+
+		Blob modelBlob = (Blob) model.getPropertyValue("file:content");		
+		Blob corpusBlob = (Blob) corpus.getPropertyValue("file:content");
+
+		URI modelURI = null;
+		URI corpusURI = null;
+
+		try {
+			modelURI = bm.getURI(modelBlob, null, null);
+			corpusURI = bm.getURI(corpusBlob, null, null);
+		} catch (IOException e) {
+			log.error("Unable to generate url for blob", e);			
+		}
+		
+		// Call SageMaker
+		
+		
 		return null;
 	}
 }
