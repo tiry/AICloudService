@@ -2,33 +2,40 @@ package org.nuxeo.ai;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.ai.service.AICloudService;
+import org.nuxeo.ai.operations.GetDataSetStats;
+import org.nuxeo.ai.operations.Publish;
+import org.nuxeo.ecm.automation.AutomationService;
+import org.nuxeo.ecm.automation.OperationContext;
+import org.nuxeo.ecm.automation.OperationException;
+import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
+import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
+import org.nuxeo.ecm.core.test.annotations.Granularity;
+import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.PartialDeploy;
 import org.nuxeo.runtime.test.runner.TargetExtensions;
 
-import com.google.inject.Inject;
-
 @RunWith(FeaturesRunner.class)
-@Features({ PlatformFeature.class })
+@Features(AutomationFeature.class)
+@RepositoryConfig(init = DefaultRepositoryInit.class, cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.ai.ai-cloud-core")
 @PartialDeploy(bundle = "studio.extensions.nuxeo-ai-online-services", extensions = { TargetExtensions.ContentModel.class })
-public class TestAICloudService {
-
-    @Inject
-    protected AICloudService aicloudservice;
+public class TestOperations {
 
     @Inject
     protected CoreSession session;
@@ -47,17 +54,17 @@ public class TestAICloudService {
 		model = session.createDocument(model);
 	}
 
-		
+    @Inject
+    protected AutomationService automationService;
+
     @Test
-    public void testService() {
-        assertNotNull(aicloudservice);
-        
-        DocumentModel publishedModel = aicloudservice.publishModel(model);
-        assertNotNull(publishedModel);
+    public void shouldCallPublishOperation() throws OperationException {
+        OperationContext ctx = new OperationContext(session);
+        ctx.setInput(model);
+        DocumentModel publishedModel = (DocumentModel) automationService.run(ctx, Publish.ID);
         
         assertTrue(publishedModel.isVersion());        
         assertEquals("1.0",publishedModel.getVersionLabel());
-        assertNotEquals("", publishedModel.getPropertyValue("dc:source"));
-                       
+        assertNotEquals("", publishedModel.getPropertyValue("dc:source"));      
     }
 }

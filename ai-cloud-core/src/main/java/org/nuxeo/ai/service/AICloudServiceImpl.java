@@ -7,6 +7,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.DocumentRef;
+import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.core.api.repository.RepositoryManager;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.runtime.api.Framework;
@@ -26,11 +28,36 @@ public class AICloudServiceImpl extends DefaultComponent implements AICloudServi
 
 	@Override
 	public DocumentModel publishModel(DocumentModel model) {
-		if (model.isCheckedOut()) {
-			
+		
+		// XXX check if model is already checked in ?
+		DocumentRef versionRef = model.getCoreSession().checkIn(model.getRef(), VersioningOption.MAJOR, "Publish");
+		DocumentModel version = model.getCoreSession().getDocument(versionRef);
+		
+		// create the new endpoint
+		String endpoint = deployModel(version);
+	
+		// store endpoint info inside the doc
+		version.putContextData("allowVersionWrite", true);	
+		version.setPropertyValue("dc:source", endpoint);
+		
+		return model.getCoreSession().saveDocument(version);		
+	}
+	
+	protected String deployModel(DocumentModel model) {
+
+		Blob modelBlob = (Blob) model.getPropertyValue("file:content");				
+		BlobManager bm = Framework.getService(BlobManager.class);
+		URI modelURI=null;
+		
+		try {
+			modelURI = bm.getURI(modelBlob, null, null);
+		} catch (IOException e) {
+			log.error("Unable to generate url for blob", e);			
 		}
-		// TODO Auto-generated method stub
-		return null;
+
+		// XXX do the actual work		
+		
+		return "http://ai/" + model.getName() + "/" + modelURI; 
 	}
 
 	@Override
@@ -64,8 +91,8 @@ public class AICloudServiceImpl extends DefaultComponent implements AICloudServi
 		}
 		
 		// Call SageMaker
-		
-		
+				
 		return null;
 	}
+	
 }
