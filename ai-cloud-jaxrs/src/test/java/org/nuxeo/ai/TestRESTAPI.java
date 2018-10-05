@@ -26,7 +26,9 @@ import org.nuxeo.jaxrs.test.CloseableClientResponse;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.PartialDeploy;
 import org.nuxeo.runtime.test.runner.ServletContainer;
+import org.nuxeo.runtime.test.runner.TargetExtensions;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -37,11 +39,9 @@ import com.google.inject.Inject;
 @ServletContainer(port = 18090)
 @RepositoryConfig(cleanup = Granularity.METHOD, init = RestServerInit.class)
 @Deploy({ "org.nuxeo.ai.ai-cloud-core", "org.nuxeo.ai.ai-cloud-jaxrs" })
-// Commented until NXP-25888 is fixed
-//@PartialDeploy(bundle = "studio.extensions.nuxeo-ai-online-services", extensions = {
-//		TargetExtensions.ContentModel.class })
+@PartialDeploy(bundle = "studio.extensions.nuxeo-ai-online-services", extensions = {
+		TargetExtensions.ContentTemplate.class })
 // manual deploy
-@Deploy("org.nuxeo.ai.ai-cloud-jaxrs.test:fakeStudio-contrib.xml")
 public class TestRESTAPI extends BaseTest {
 
 	@Inject
@@ -66,7 +66,7 @@ public class TestRESTAPI extends BaseTest {
 		containerB.setPropertyValue("airc:projectid", "009");
 		containerB = session.createDocument(containerB);
 
-		datasetB = session.createDocumentModel("/myCustomerB", "ds1", "AI_Corpus");
+		datasetB = session.createDocumentModel("/myCustomerB/datasets", "ds1", "AI_Corpus");
 		datasetB = session.createDocument(datasetB);
 		
 		session.save();
@@ -130,7 +130,7 @@ public class TestRESTAPI extends BaseTest {
         try (CloseableClientResponse response = getResponse(RequestType.POST, "ai/" + projectId, payload)) {
             fetchInvalidations();
 
-            DocumentModelList docs = session.query("select * from AI_Corpus where ecm:parentId='" + containerA.getId()+ "'");            
+            DocumentModelList docs = session.query("select * from AI_Corpus where ecm:path startswith '" + containerA.getPathAsString()+ "/datasets/'");            
             assertEquals(1,docs.size());
                        
             DocumentModel doc = docs.get(0);            
@@ -139,8 +139,7 @@ public class TestRESTAPI extends BaseTest {
             
             Blob blob = (Blob) doc.getPropertyValue("file:content");
             assertNotNull(blob);
-            assertEquals("aidata.bin", blob.getFilename());
-            
+            assertEquals("aidata.bin", blob.getFilename());           
         }
 	}
 

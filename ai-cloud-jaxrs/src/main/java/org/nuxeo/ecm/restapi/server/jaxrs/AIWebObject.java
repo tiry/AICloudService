@@ -39,8 +39,20 @@ public class AIWebObject extends DefaultObject {
         }
 
         DocumentModel parent = getProjectContainer(projectId);
-        // XXX check inputDoc.getType() ?        
-        DocumentModel createdDoc = session.createDocumentModel(parent.getPathAsString(), inputDoc.getName(),
+        
+        String parentPath = parent.getPathAsString();
+        
+        if ("AI_Model".equals(inputDoc.getType())) {
+        	parentPath = parent.getPath().append("models").toString();
+        } else if ("AI_Corpus".equals(inputDoc.getType())) {
+        	parentPath = parent.getPath().append("datasets").toString();
+        } else if ("AI_Training".equals(inputDoc.getType())) {
+        	parentPath = parent.getPath().append("trainings").toString();
+        } else {
+        	return Response.status(Status.BAD_REQUEST).entity("Unexpected Document Type").build();
+        }
+
+        DocumentModel createdDoc = session.createDocumentModel(parentPath, inputDoc.getName(),
                 inputDoc.getType());
         DocumentModelJsonReader.applyPropertyValues(inputDoc, createdDoc);
         createdDoc = session.createDocument(createdDoc);
@@ -69,6 +81,7 @@ public class AIWebObject extends DefaultObject {
         CoreSession session = getContext().getCoreSession();                        
         DocumentModel parent = getProjectContainer(projectId);                
         // XX handle batching
+        
         DocumentModelList docs = session.query("select * from AI_Corpus where ecm:path startswith '" + parent.getPathAsString() + "'");                        
         return docs;        
     }
