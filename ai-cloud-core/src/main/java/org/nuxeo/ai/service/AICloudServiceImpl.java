@@ -2,12 +2,18 @@ package org.nuxeo.ai.service;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.nuxeo.ai.service.run.DummyModelRunner;
+import org.nuxeo.ai.service.run.ModelRunner;
+import org.nuxeo.ai.service.train.ModelTrainer;
+import org.nuxeo.ai.service.train.StreamModelTrainer;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.core.api.repository.RepositoryManager;
 import org.nuxeo.ecm.core.blob.BlobManager;
@@ -20,6 +26,10 @@ public class AICloudServiceImpl extends DefaultComponent implements AICloudServi
 
 	protected static Log log = LogFactory.getLog(AICloudServiceImpl.class);
 	
+	protected ModelRunner runner = new DummyModelRunner();
+	
+	protected ModelTrainer trainer = new StreamModelTrainer();
+	
 	@Override
 	public Object getCorpusStatistics(DocumentModel corpus) {
 		// TODO Auto-generated method stub
@@ -28,22 +38,28 @@ public class AICloudServiceImpl extends DefaultComponent implements AICloudServi
 
 	@Override
 	public DocumentModel publishModel(DocumentModel model) {
+						
+		DocumentModel version=null;
 		
-		// XXX check if model is already checked in ?
-		DocumentRef versionRef = model.getCoreSession().checkIn(model.getRef(), VersioningOption.MAJOR, "Publish");
-		DocumentModel version = model.getCoreSession().getDocument(versionRef);
-		
+		if (!model.isCheckedOut()) {
+			version = model.getCoreSession().getLastDocumentVersion(model.getRef());
+		} else {
+			DocumentRef versionRef = model.getCoreSession().checkIn(model.getRef(), VersioningOption.MAJOR, "Publish");
+			version = model.getCoreSession().getDocument(versionRef);							
+		}
+					
 		// create the new endpoint
-		String endpoint = deployModel(version);
+		URI endpoint = deployModel(version);
 	
 		// store endpoint info inside the doc
 		version.putContextData("allowVersionWrite", true);	
-		version.setPropertyValue("dc:source", endpoint);
+		version.setPropertyValue("dc:source", endpoint.toString());
 		
 		return model.getCoreSession().saveDocument(version);		
 	}
 	
-	protected String deployModel(DocumentModel model) {
+	
+	protected URI deployModel(DocumentModel model) {
 
 		Blob modelBlob = (Blob) model.getPropertyValue("file:content");				
 		BlobManager bm = Framework.getService(BlobManager.class);
@@ -52,18 +68,31 @@ public class AICloudServiceImpl extends DefaultComponent implements AICloudServi
 		try {
 			modelURI = bm.getURI(modelBlob, null, null);
 		} catch (IOException e) {
-			log.error("Unable to generate url for blob", e);			
+			log.warn("Unable to generate url for blob, will use digest instead", e);
+			try {
+				modelURI = new URI("digest", modelBlob.getDigest(),null);
+			} catch (URISyntaxException e1) {
+				log.error("Unable to build URI from digest", e);
+			}
 		}
 
-		// XXX do the actual work		
+		URI endpointURI = runner.deployModel(model.getId(), modelURI);
 		
-		return "http://ai/" + model.getName() + "/" + modelURI; 
+		// XXX do the actual work				
+		return endpointURI;
 	}
 
 	@Override
 	public DocumentModel unpublishModel(DocumentModel model) {
-		// TODO Auto-generated method stub
-		return null;
+		runner.undeployModel(model.getId());
+		
+		DocumentModel version = model.getCoreSession().getDocument(model.getRef());
+		// remove endpoint info inside the version
+		version.putContextData("allowVersionWrite", true);	
+		version.setPropertyValue("dc:source", "");
+		
+		return model.getCoreSession().saveDocument(version);		
+
 	}
 
 	@Override
@@ -73,26 +102,8 @@ public class AICloudServiceImpl extends DefaultComponent implements AICloudServi
 	}
 
 	@Override
-	public Object trainModel(DocumentModel model, DocumentModel corpus) {
-
-		BlobManager bm = Framework.getService(BlobManager.class);
-
-		Blob modelBlob = (Blob) model.getPropertyValue("file:content");		
-		Blob corpusBlob = (Blob) corpus.getPropertyValue("file:content");
-
-		URI modelURI = null;
-		URI corpusURI = null;
-
-		try {
-			modelURI = bm.getURI(modelBlob, null, null);
-			corpusURI = bm.getURI(corpusBlob, null, null);
-		} catch (IOException e) {
-			log.error("Unable to generate url for blob", e);			
-		}
-		
-		// Call SageMaker
-				
-		return null;
+	public String trainModel(DocumentModel model, DocumentModel corpus, DocumentModel trainingConfig) {		
+		return trainer.scheduleTraining(model, corpus, trainingConfig);
 	}
 	
 }

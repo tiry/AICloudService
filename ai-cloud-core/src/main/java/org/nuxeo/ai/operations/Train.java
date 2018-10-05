@@ -31,12 +31,13 @@ public class Train {
 
     @Param(name = "dataset")
     protected DocumentRef dataset;
-    
-    @OperationMethod
-    public String run() {
-    	    	
-    	Object handler = service.trainModel(session.getDocument(model), session.getDocument(dataset));
 
-    	return "training started";
+    @Param(name = "trainingConfig")
+    protected DocumentRef trainingConfig;
+
+    @OperationMethod
+    public String run() {    	    	    	
+    	String key = service.trainModel(session.getDocument(model), session.getDocument(dataset), session.getDocument(trainingConfig));
+    	return key;
     }
 }

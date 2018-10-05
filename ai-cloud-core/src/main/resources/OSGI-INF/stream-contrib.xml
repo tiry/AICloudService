@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ai.cloud.stream.">
+
+  <extension point="logConfig" target="org.nuxeo.runtime.stream.service">
+    <logConfig name="aiTrainRequests">
+      <log name="aiTrainRequests" size="1" />
+    </logConfig>
+    
+    <logConfig name="aiTrainResults">
+      <log name="aiTrainResults" size="1" />
+    </logConfig>
+  </extension>
+
+<!-- 
+  <extension point="streamProcessor" target="org.nuxeo.runtime.stream.service">
+
+    <streamProcessor name="oplogProcessor"
+      class="org.nuxeo.platform.replication.ReplicationProcessor"
+      defaultConcurrency="1" defaultPartitions="1" logConfig="replication-log">
+
+      <computation name="C1" concurrency="1" />
+      <option name="batchSize">1</option>
+      <option name="dbname">unittests</option>
+    </streamProcessor>
+
+  </extension>
+ -->
+ 
+</component>

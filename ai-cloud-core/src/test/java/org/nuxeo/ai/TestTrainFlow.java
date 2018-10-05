@@ -26,7 +26,7 @@ import com.google.inject.Inject;
 @Features({ PlatformFeature.class })
 @Deploy("org.nuxeo.ai.ai-cloud-core")
 @PartialDeploy(bundle = "studio.extensions.nuxeo-ai-online-services", extensions = { TargetExtensions.ContentModel.class })
-public class TestAICloudService {
+public class TestTrainFlow {
 
     @Inject
     protected AICloudService aicloudservice;
@@ -35,6 +35,10 @@ public class TestAICloudService {
     protected CoreSession session;
     
     protected DocumentModel model;
+
+    protected DocumentModel dataset;
+    
+    protected DocumentModel notebook;
     
 	@Before
 	public void doBefore() throws Exception {
@@ -46,40 +50,24 @@ public class TestAICloudService {
 		model = session.createDocumentModel("/myCustomerA", "model1", "AI_Model");
 		model.setPropertyValue("file:content", new StringBlob("XXX","tensorflow/model","UTF-8","model.dat"));
 		model = session.createDocument(model);
+		
+		dataset = session.createDocumentModel("/myCustomerA", "dataset1", "AI_Corpus");
+		dataset.setPropertyValue("file:content", new StringBlob("XXX","tensorflow/data","UTF-8","data.tf"));
+		dataset = session.createDocument(dataset);
+		
+		notebook = session.createDocumentModel("/myCustomerA", "notebook1", "Note");
+		notebook.setPropertyValue("note:note", "tensorflow/notebook");
+		notebook = session.createDocument(notebook);
+		
 	}
 
 		
     @Test
-    public void testPublish() {
+    public void testTraih() {
         assertNotNull(aicloudservice);
         
-        DocumentModel publishedModel = aicloudservice.publishModel(model);
-        assertNotNull(publishedModel);
+        String key = aicloudservice.trainModel(model, dataset, notebook);
         
-        assertTrue(publishedModel.isVersion());        
-        assertEquals("1.0",publishedModel.getVersionLabel());
-        assertNotEquals("", publishedModel.getPropertyValue("dc:source"));
-        assertTrue(((String)publishedModel.getPropertyValue("dc:source")).contains("fakeModelServer"));
-     
-        model.setPropertyValue("dc:nature", "model");
-        model = session.saveDocument(model);
-        
-        publishedModel = aicloudservice.publishModel(model);
-        assertNotNull(publishedModel);
-        
-        assertTrue(publishedModel.isVersion());        
-        assertEquals("2.0",publishedModel.getVersionLabel());
-        assertNotEquals("", publishedModel.getPropertyValue("dc:source"));
-        assertTrue(((String)publishedModel.getPropertyValue("dc:source")).contains("fakeModelServer"));
-                
-        DocumentModelList docs = session.query("select * from Document where ecm:path = '" + model.getPathAsString() + "'");        
-        for (DocumentModel doc : docs) {
-        	System.out.println( doc.getId() + " - " + doc.isVersion() + " - " + doc.getVersionLabel());
-        }
-        
-        docs = session.query("select * from Document where ecm:versionVersionableId ='" + model.getVersionSeriesId() + "'");        
-        for (DocumentModel doc : docs) {
-        	System.out.println( doc.getId() + " - " + doc.isVersion() + " - " + doc.getVersionLabel());
-        }        
+        assertNotNull(key);
     }
 }

@@ -6,4 +6,5 @@
   <service>
     <provide interface="org.nuxeo.ai.service.AICloudService" />
   </service>
+  
 </component>
