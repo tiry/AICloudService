@@ -60,25 +60,11 @@ public class AICloudServiceImpl extends DefaultComponent implements AICloudServi
 	
 	
 	protected URI deployModel(DocumentModel model) {
-
-		Blob modelBlob = (Blob) model.getPropertyValue("file:content");				
-		BlobManager bm = Framework.getService(BlobManager.class);
-		URI modelURI=null;
 		
-		try {
-			modelURI = bm.getURI(modelBlob, null, null);
-		} catch (IOException e) {
-			log.warn("Unable to generate url for blob, will use digest instead", e);
-			try {
-				modelURI = new URI("digest", modelBlob.getDigest(),null);
-			} catch (URISyntaxException e1) {
-				log.error("Unable to build URI from digest", e);
-			}
-		}
-
+		URI modelURI = AIBlobHelper.getBlobURI(model, "file:content");
+		
 		URI endpointURI = runner.deployModel(model.getId(), modelURI);
-		
-		// XXX do the actual work				
+
 		return endpointURI;
 	}
 
@@ -102,8 +88,8 @@ public class AICloudServiceImpl extends DefaultComponent implements AICloudServi
 	}
 
 	@Override
-	public String trainModel(DocumentModel model, DocumentModel corpus, DocumentModel trainingConfig) {		
-		return trainer.scheduleTraining(model, corpus, trainingConfig);
+	public String trainModel(DocumentModel training) {		
+		return trainer.scheduleTraining(training);
 	}
 	
 }

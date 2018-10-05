@@ -4,7 +4,6 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 
 public interface ModelTrainer {
 
-	String scheduleTraining(DocumentModel model, DocumentModel dataset, DocumentModel trainingConfig);
-	
+	String scheduleTraining(DocumentModel trainingConfig);	
 
 }

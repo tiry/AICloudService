@@ -26,18 +26,9 @@ public class Train {
     @Context
     protected AICloudService service;    
     
-    @Param(name = "model")
-    protected DocumentRef model;
-
-    @Param(name = "dataset")
-    protected DocumentRef dataset;
-
-    @Param(name = "trainingConfig")
-    protected DocumentRef trainingConfig;
-
     @OperationMethod
-    public String run() {    	    	    	
-    	String key = service.trainModel(session.getDocument(model), session.getDocument(dataset), session.getDocument(trainingConfig));
+    public String run(DocumentModel training) {    	    	    	
+    	String key = service.trainModel(training);
     	return key;
     }
 }

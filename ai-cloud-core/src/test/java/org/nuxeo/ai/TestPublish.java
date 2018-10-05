@@ -26,7 +26,7 @@ import com.google.inject.Inject;
 @Features({ PlatformFeature.class })
 @Deploy("org.nuxeo.ai.ai-cloud-core")
 @PartialDeploy(bundle = "studio.extensions.nuxeo-ai-online-services", extensions = { TargetExtensions.ContentModel.class })
-public class TestAICloudService {
+public class TestPublish {
 
     @Inject
     protected AICloudService aicloudservice;

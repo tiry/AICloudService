@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<component name="org.nuxeo.ai.operation.getdatasetstats" version="1.0">
+<component name="org.nuxeo.ai.cloud.operations" version="1.0">
 
   <extension point="operations" target="org.nuxeo.ecm.core.operation.OperationServiceComponent">
     <operation class="org.nuxeo.ai.operations.GetDataSetStats"/>

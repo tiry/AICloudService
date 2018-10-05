@@ -12,6 +12,10 @@
 
   <dependencies>
     <dependency>
+      <groupId>org.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-api</artifactId>
+    </dependency>
+    <dependency>
       <groupId>nuxeo-studio</groupId>
       <artifactId>nuxeo-ai-online-services</artifactId>
     </dependency>

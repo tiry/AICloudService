@@ -11,16 +11,14 @@
     </logConfig>
   </extension>
 
-<!-- 
   <extension point="streamProcessor" target="org.nuxeo.runtime.stream.service">
 
-    <streamProcessor name="oplogProcessor"
-      class="org.nuxeo.platform.replication.ReplicationProcessor"
-      defaultConcurrency="1" defaultPartitions="1" logConfig="replication-log">
+    <streamProcessor name="trainedResultProcessor"
+      class="org.nuxeo.ai.service.train.TrainedModelProcessor"
+      defaultConcurrency="1" defaultPartitions="1" logConfig="aiTrainResults">
 
-      <computation name="C1" concurrency="1" />
-      <option name="batchSize">1</option>
-      <option name="dbname">unittests</option>
+      <computation name="processTrainedModel" concurrency="1" />
+
     </streamProcessor>
 
   </extension>

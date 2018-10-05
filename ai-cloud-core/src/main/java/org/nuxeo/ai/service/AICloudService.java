@@ -12,6 +12,6 @@ public interface AICloudService {
 
 	public DocumentModel predict(DocumentModel model);
 
-	public String trainModel(DocumentModel model, DocumentModel corpus, DocumentModel trainingConfig);
+	public String trainModel(DocumentModel trainingConfig);
 
 }
