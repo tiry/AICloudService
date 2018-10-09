@@ -27,7 +27,7 @@ public class Predict {
     protected String modelId;
     
     @OperationMethod
-    public DocumentModel run(DocumentModel doc) {    	
+    public String run(DocumentModel doc) {    	
     	return service.predict(doc, modelId);
     }
 }

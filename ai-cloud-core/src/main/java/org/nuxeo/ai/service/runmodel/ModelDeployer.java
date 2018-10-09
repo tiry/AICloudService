@@ -2,7 +2,7 @@ package org.nuxeo.ai.service.runmodel;
 
 import java.net.URI;
 
-public interface ModelRunner {
+public interface ModelDeployer {
 	
 	URI deployModel(String modelUUID, URI blobModel);
 	

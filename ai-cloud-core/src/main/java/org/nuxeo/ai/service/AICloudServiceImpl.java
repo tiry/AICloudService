@@ -6,8 +6,8 @@ import java.net.URISyntaxException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.nuxeo.ai.service.runmodel.DummyModelRunner;
-import org.nuxeo.ai.service.runmodel.ModelRunner;
+import org.nuxeo.ai.service.runmodel.ModelDeployer;
+import org.nuxeo.ai.service.runmodel.dummy.DummyModelDeployer;
 import org.nuxeo.ai.service.trainmodel.ModelTrainer;
 import org.nuxeo.ai.service.trainmodel.stream.StreamModelTrainer;
 import org.nuxeo.ecm.core.api.Blob;
@@ -27,7 +27,7 @@ public class AICloudServiceImpl extends DefaultComponent implements AICloudServi
 
 	protected static Log log = LogFactory.getLog(AICloudServiceImpl.class);
 	
-	protected ModelRunner runner = new DummyModelRunner();
+	protected ModelDeployer runner = new DummyModelDeployer();
 	
 	protected ModelTrainer trainer = new StreamModelTrainer();
 	
@@ -83,15 +83,21 @@ public class AICloudServiceImpl extends DefaultComponent implements AICloudServi
 	}
 
 	@Override
-	public DocumentModel predict(DocumentModel doc, String modelId) {
+	public String predict(DocumentModel doc, String modelId) {
 		
 		DocumentModel model = doc.getCoreSession().getDocument(new IdRef(modelId));
 
 		String endpoint = (String) model.getPropertyValue("dc:source");
 		
+		// XXX
+		// check alive
+		// redeploy endpoint if needed		
+		
 		// XXX call endpoint
-
-		// TODO Auto-generated method stubs
+		// see https://github.com/nuxeo/ai-core/blob/master/nuxeo-ai-model/src/main/java/org/nuxeo/ai/model/serving/TFRuntimeModel.java
+		
+		// return JSON string
+		
 		return null;
 	}
 
