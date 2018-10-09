@@ -6,13 +6,14 @@ import java.net.URISyntaxException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.nuxeo.ai.service.run.DummyModelRunner;
-import org.nuxeo.ai.service.run.ModelRunner;
-import org.nuxeo.ai.service.train.ModelTrainer;
-import org.nuxeo.ai.service.train.StreamModelTrainer;
+import org.nuxeo.ai.service.runmodel.DummyModelRunner;
+import org.nuxeo.ai.service.runmodel.ModelRunner;
+import org.nuxeo.ai.service.trainmodel.ModelTrainer;
+import org.nuxeo.ai.service.trainmodel.stream.StreamModelTrainer;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
+import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.core.api.repository.RepositoryManager;
@@ -82,8 +83,15 @@ public class AICloudServiceImpl extends DefaultComponent implements AICloudServi
 	}
 
 	@Override
-	public DocumentModel predict(DocumentModel model) {
-		// TODO Auto-generated method stub
+	public DocumentModel predict(DocumentModel doc, String modelId) {
+		
+		DocumentModel model = doc.getCoreSession().getDocument(new IdRef(modelId));
+
+		String endpoint = (String) model.getPropertyValue("dc:source");
+		
+		// XXX call endpoint
+
+		// TODO Auto-generated method stubs
 		return null;
 	}
 

@@ -10,7 +10,7 @@ public interface AICloudService {
 
 	public DocumentModel unpublishModel(DocumentModel model);
 
-	public DocumentModel predict(DocumentModel model);
+	public DocumentModel predict(DocumentModel document, String modelId);
 
 	public String trainModel(DocumentModel trainingConfig);
 

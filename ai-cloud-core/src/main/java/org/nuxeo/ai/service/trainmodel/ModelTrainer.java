@@ -1,4 +1,4 @@
-package org.nuxeo.ai.service.train;
+package org.nuxeo.ai.service.trainmodel;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 

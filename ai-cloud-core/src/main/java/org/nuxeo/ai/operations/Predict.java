@@ -5,6 +5,7 @@ import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.annotations.Context;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
 import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
+import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 
@@ -22,8 +23,11 @@ public class Predict {
     @Context
     protected AICloudService service;    
     
+    @Param(name = "modelId")
+    protected String modelId;
+    
     @OperationMethod
-    public DocumentModel run(DocumentModel model) {    	
-    	return service.predict(model);
+    public DocumentModel run(DocumentModel doc) {    	
+    	return service.predict(doc, modelId);
     }
 }

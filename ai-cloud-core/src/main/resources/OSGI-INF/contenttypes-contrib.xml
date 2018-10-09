@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<component name="org.nuxeo.ai.model.custom.documents" version="1.0.0">
-  <require>org.nuxeo.ecm.core.CoreExtensions</require>
-  <extension target="org.nuxeo.ecm.core.schema.TypeService" point="schema">
-    <schema name="ai_corpus" prefix="ai_corpus" override="true" src="data/schemas/ai_corpus.xsd"/>
-    <schema name="ai_model" prefix="ai_model" override="true" src="data/schemas/ai_model.xsd"/>
-  </extension>
-</component>  

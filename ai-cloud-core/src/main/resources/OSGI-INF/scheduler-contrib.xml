@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="org.nuxeo.ai.scheduler" version="1.0">
+
+  <extension target="org.nuxeo.ecm.core.scheduler.SchedulerService" point="schedule">
+
+    <schedule id="sagemakerpoll">
+      <event>sagemakerpoll</event>
+      <cronExpression>0 * * * * ?</cronExpression>
+    </schedule>
+
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.event.EventServiceComponent"
+    point="listener">
+    <listener name="SageMakerJobStatusPoller" async="false" postCommit="false"
+      class="org.nuxeo.ai.service.trainmodel.sagemaker.SageMakerJobStatusPoller">
+      <event>sagemakerpoll</event>
+    </listener>
+  </extension>
+  
+</component>

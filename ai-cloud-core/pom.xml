@@ -24,6 +24,11 @@
       <artifactId>nuxeo-automation-core</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-sagemaker</artifactId>
+      <version>1.11.325</version>
+    </dependency>
+    <dependency>
       <groupId>org.nuxeo.ecm.automation</groupId>
       <artifactId>nuxeo-automation-test</artifactId>
       <scope>test</scope>
@@ -31,6 +36,10 @@
     <dependency>
       <groupId>org.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-aws</artifactId>
     </dependency>
     <dependency>
       <groupId>org.nuxeo.runtime</groupId>

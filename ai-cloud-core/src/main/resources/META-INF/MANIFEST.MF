@@ -7,6 +7,7 @@ Bundle-Name: ai-cloud-core
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.nuxeo.ai.ai-cloud-core;singleton=true
 Nuxeo-Component: OSGI-INF/operation-contrib.xml,
+ OSGI-INF/sagemaker-service.xml,
  OSGI-INF/aicloudservice-service.xml,
- OSGI-INF/contenttypes-contrib.xml,
- OSGI-INF/stream-contrib.xml
+ OSGI-INF/stream-contrib.xml,
+ OSGI-INF/scheduler-contrib.xml

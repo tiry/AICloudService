@@ -1,4 +1,4 @@
-package org.nuxeo.ai.service.train;
+package org.nuxeo.ai.service.trainmodel.stream;
 
 import java.io.IOException;
 import java.io.Serializable;

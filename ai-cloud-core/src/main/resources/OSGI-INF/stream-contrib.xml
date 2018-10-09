@@ -14,7 +14,7 @@
   <extension point="streamProcessor" target="org.nuxeo.runtime.stream.service">
 
     <streamProcessor name="trainedResultProcessor"
-      class="org.nuxeo.ai.service.train.TrainedModelProcessor"
+      class="org.nuxeo.ai.service.trainmodel.stream.TrainedModelProcessor"
       defaultConcurrency="1" defaultPartitions="1" logConfig="aiTrainResults">
 
       <computation name="processTrainedModel" concurrency="1" />
