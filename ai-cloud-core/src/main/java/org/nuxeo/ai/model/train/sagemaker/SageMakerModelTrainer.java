@@ -1,7 +1,7 @@
-package org.nuxeo.ai.service.trainmodel.sagemaker;
+package org.nuxeo.ai.model.train.sagemaker;
 
+import org.nuxeo.ai.model.train.ModelTrainer;
 import org.nuxeo.ai.service.ModelTrainerService;
-import org.nuxeo.ai.service.trainmodel.ModelTrainer;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.runtime.api.Framework;
 

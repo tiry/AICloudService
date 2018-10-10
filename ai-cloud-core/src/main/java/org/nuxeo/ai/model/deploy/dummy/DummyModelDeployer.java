@@ -1,11 +1,11 @@
-package org.nuxeo.ai.service.runmodel.dummy;
+package org.nuxeo.ai.model.deploy.dummy;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.nuxeo.ai.service.runmodel.ModelDeployer;
+import org.nuxeo.ai.model.deploy.ModelDeployer;
 
 public class DummyModelDeployer implements ModelDeployer {
 

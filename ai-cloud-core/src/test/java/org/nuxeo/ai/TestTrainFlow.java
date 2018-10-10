@@ -14,7 +14,7 @@ import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.ai.service.AIBlobHelper;
+import org.nuxeo.ai.blob.AIBlobHelper;
 import org.nuxeo.ai.service.AICloudService;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;

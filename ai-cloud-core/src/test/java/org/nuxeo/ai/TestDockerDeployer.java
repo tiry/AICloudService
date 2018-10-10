@@ -11,7 +11,7 @@ import java.net.URL;
 import java.util.UUID;
 
 import org.junit.Test;
-import org.nuxeo.ai.service.runmodel.localdocker.DockerLocalDeployer;
+import org.nuxeo.ai.model.deploy.localdocker.DockerLocalDeployer;
 
 import com.github.dockerjava.api.model.ExposedPort;
 

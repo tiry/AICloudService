@@ -1,4 +1,4 @@
-package org.nuxeo.ai.service;
+package org.nuxeo.ai.blob;
 
 import java.io.IOException;
 import java.net.URI;

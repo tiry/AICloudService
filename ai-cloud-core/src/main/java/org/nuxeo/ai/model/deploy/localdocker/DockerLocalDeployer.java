@@ -1,4 +1,4 @@
-package org.nuxeo.ai.service.runmodel.localdocker;
+package org.nuxeo.ai.model.deploy.localdocker;
 
 import java.net.URI;
 import java.util.HashMap;
@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.nuxeo.ai.service.runmodel.ModelDeployer;
+import org.nuxeo.ai.model.deploy.ModelDeployer;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.CreateContainerCmd;

@@ -13,7 +13,7 @@
   <extension target="org.nuxeo.ecm.core.event.EventServiceComponent"
     point="listener">
     <listener name="SageMakerJobStatusPoller" async="false" postCommit="false"
-      class="org.nuxeo.ai.service.trainmodel.sagemaker.SageMakerJobStatusPoller">
+      class="org.nuxeo.ai.model.train.sagemaker.SageMakerJobStatusPoller">
       <event>sagemakerpoll</event>
     </listener>
   </extension>

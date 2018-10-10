@@ -8,7 +8,7 @@
  * Contributors:
  *     dmetzler
  */
-package org.nuxeo.ai.service.trainmodel.stream;
+package org.nuxeo.ai.model.train.stream;
 
 import java.util.Collections;
 import java.util.Map;

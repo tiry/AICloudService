@@ -1,4 +1,4 @@
-package org.nuxeo.ai.service.runmodel;
+package org.nuxeo.ai.model.deploy;
 
 import java.net.URI;
 

@@ -6,10 +6,11 @@ import java.net.URISyntaxException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.nuxeo.ai.service.runmodel.ModelDeployer;
-import org.nuxeo.ai.service.runmodel.dummy.DummyModelDeployer;
-import org.nuxeo.ai.service.trainmodel.ModelTrainer;
-import org.nuxeo.ai.service.trainmodel.stream.StreamModelTrainer;
+import org.nuxeo.ai.blob.AIBlobHelper;
+import org.nuxeo.ai.model.deploy.ModelDeployer;
+import org.nuxeo.ai.model.deploy.dummy.DummyModelDeployer;
+import org.nuxeo.ai.model.train.ModelTrainer;
+import org.nuxeo.ai.model.train.stream.StreamModelTrainer;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;

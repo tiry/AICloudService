@@ -1,8 +1,8 @@
-package org.nuxeo.ai.service.runmodel.ocp;
+package org.nuxeo.ai.model.deploy.ocp;
 
 import java.net.URI;
 
-import org.nuxeo.ai.service.runmodel.ModelDeployer;
+import org.nuxeo.ai.model.deploy.ModelDeployer;
 
 public class OCPModelDeployer implements ModelDeployer {
 

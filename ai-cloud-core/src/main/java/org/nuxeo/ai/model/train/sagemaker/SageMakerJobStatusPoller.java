@@ -1,4 +1,4 @@
-package org.nuxeo.ai.service.trainmodel.sagemaker;
+package org.nuxeo.ai.model.train.sagemaker;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package org.nuxeo.ai.service.trainmodel.stream;
+package org.nuxeo.ai.model.train.stream;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -9,7 +9,7 @@ import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.nuxeo.ai.service.AIBlobHelper;
+import org.nuxeo.ai.blob.AIBlobHelper;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.IdRef;
