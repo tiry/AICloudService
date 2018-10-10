@@ -4,10 +4,12 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.nuxeo.ai.service.runmodel.ModelDeployer;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.CreateContainerCmd;
 import com.github.dockerjava.api.command.CreateContainerResponse;
 import com.github.dockerjava.api.command.DockerCmdExecFactory;
 import com.github.dockerjava.api.command.StartContainerCmd;
@@ -18,18 +20,21 @@ import com.github.dockerjava.api.model.Ports;
 import com.github.dockerjava.api.model.Ports.Binding;
 import com.github.dockerjava.core.DockerClientBuilder;
 import com.github.dockerjava.core.DockerClientConfig;
-import com.github.dockerjava.jaxrs.DockerCmdExecFactoryImpl;
+import com.github.dockerjava.netty.DockerCmdExecFactoryImpl;
 
 public class DockerLocalDeployer implements ModelDeployer {
 
 	protected DockerClientConfig config;
 	
 	protected DockerClient dockerClient;
+		
+	protected final AtomicInteger nextAvailablePort = new AtomicInteger(9090);
 	
 	public DockerLocalDeployer() {
+		
 		config = DockerClientConfig.createDefaultConfigBuilder()
-				  .withDockerHost("tcp://127.0.0.1:2376")
-				  .withDockerTlsVerify(true)
+//				  .withDockerHost("tcp://127.0.0.1:2376")
+				  .withDockerTlsVerify(false)
 				  .withDockerCertPath("/home/tiry/.docker")
 //				  .withRegistryUsername(registryUser)
 //				  .withRegistryPassword(registryPass)
@@ -37,12 +42,13 @@ public class DockerLocalDeployer implements ModelDeployer {
 //				  .withRegistryUrl(registryUrl)
 				  .build();
 
-				DockerCmdExecFactory dockerCmdExecFactory = new DockerCmdExecFactoryImpl()
-				  .withReadTimeout(1000)
-				  .withConnectTimeout(1000)
-				  .withMaxTotalConnections(100)
-				  .withMaxPerRouteConnections(10);
+				DockerCmdExecFactory dockerCmdExecFactory = new DockerCmdExecFactoryImpl();
+//				  .withReadTimeout(1000)
+//				  .withConnectTimeout(1000)
+//				  .withMaxTotalConnections(100)
+//				  .withMaxPerRouteConnections(10);
 
+				
 				dockerClient = DockerClientBuilder.getInstance(config)
 				  .withDockerCmdExecFactory(dockerCmdExecFactory)
 				  .build();
@@ -52,23 +58,47 @@ public class DockerLocalDeployer implements ModelDeployer {
 		return new String[] {};
 	}
 	
+	
+	protected ExposedPort getExposedPort() {
+		ExposedPort tcp80 = ExposedPort.tcp(80);
+		return tcp80;
+	}
+	
+	protected String getCmd() {
+		return null;
+	}
+	
+	protected String getImageName() {
+		return "httpd";
+	}
+	
 	@Override
 	public URI deployModel(String modelUUID, URI blobModel) {
 		
-		ExposedPort tcp8080 = ExposedPort.tcp(8080);
+		ExposedPort exposedPort = getExposedPort();
 		Ports portBindings = new Ports();		
-		portBindings.bind(tcp8080, Binding.bindPortRange(8090, 9090));
-				
+		//portBindings.bind(tcp8080, Binding.bindPortRange(8090, 9090));
+		int port = nextAvailablePort.getAndIncrement();
+		portBindings.bind(exposedPort, Binding.bindPort(port));
+		
 		Map<String, String> labels = new HashMap<>();
 		labels.put("modelUUID", modelUUID);
 		
-		CreateContainerResponse tfcontainer = dockerClient.createContainerCmd("nxtf")
-				   .withCmd("sleep", "9999")
+
+		CreateContainerCmd createCmd = dockerClient.createContainerCmd(getImageName())
+//				   .withCmd("sleep", "9999")
 				   .withName("tf-" + modelUUID)
 				   .withLabels(labels)
+				   .withExposedPorts(exposedPort)
 				   .withPortBindings(portBindings)
-				   .withEnv(getEnv(modelUUID, blobModel))
-				   .exec();
+				   .withEnv(getEnv(modelUUID, blobModel));
+		
+		String cmd = getCmd();
+		if (cmd!=null) {
+			createCmd = createCmd.withCmd(cmd);
+		}
+		
+		CreateContainerResponse tfcontainer = createCmd.exec();
 
 		StartContainerCmd start = dockerClient.startContainerCmd(tfcontainer.getId());		
 		start.exec();
@@ -78,12 +108,12 @@ public class DockerLocalDeployer implements ModelDeployer {
 
 	protected URI buildEndPointURI(int port) {		
 		try {
-			return new URI("http", "/127.0.0.1:" + port, null);
+			return new URI("http", "//127.0.0.1:" + port, null);
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		}
-	}
+	}	
 	
 	@Override
 	public URI getModelEndPoint(String modelUUID) {
@@ -98,7 +128,13 @@ public class DockerLocalDeployer implements ModelDeployer {
 			return null;
 		} else if (containers.size()==1) {
 			ContainerPort[] ports = containers.get(0).getPorts();
-			return buildEndPointURI(ports[0].getPublicPort().intValue());
+			for (ContainerPort port: ports) {
+				if (port.getPublicPort()!=null) {
+					return buildEndPointURI(port.getPublicPort().intValue());
+				}
+			}
+			return null;
+			
 		} else {
 			// Yurk !
 			return null;
@@ -115,7 +151,7 @@ public class DockerLocalDeployer implements ModelDeployer {
 		if (containers.size()==0) {
 			// dead ?
 		} else if (containers.size()==1) {
-			dockerClient.stopContainerCmd(containers.get(0).getId());
+			dockerClient.stopContainerCmd(containers.get(0).getId()).exec();
 		} else {
 			// Yurk : kill everyone ?
 			// XXX
