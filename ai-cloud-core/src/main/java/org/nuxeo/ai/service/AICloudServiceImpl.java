@@ -74,8 +74,11 @@ public class AICloudServiceImpl extends DefaultComponent implements AICloudServi
 		URI endpoint = deployModel(version);
 	
 		// store endpoint info inside the doc
-		version.putContextData("allowVersionWrite", true);	
-		version.setPropertyValue("dc:source", endpoint.toString());
+		version.putContextData("allowVersionWrite", true);
+		
+		Map<String, String> info = (Map<String, String>) version.getPropertyValue("ai_model:deployment_information");
+		info.put("endpoint", endpoint.toString());
+		version.setPropertyValue("ai_model:deployment_information", (Serializable) info);
 		
 		return model.getCoreSession().saveDocument(version);		
 	}

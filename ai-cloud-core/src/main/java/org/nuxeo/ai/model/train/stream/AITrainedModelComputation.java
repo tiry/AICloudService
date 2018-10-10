@@ -1,23 +1,19 @@
 package org.nuxeo.ai.model.train.stream;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.io.StringReader;
 import java.net.URI;
-import java.util.GregorianCalendar;
 import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.nuxeo.ai.blob.AIBlobHelper;
-import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ai.model.train.ModelTrainer;
+import org.nuxeo.ai.service.AICloudService;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.UnrestrictedSessionRunner;
-import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.core.api.repository.RepositoryManager;
-import org.nuxeo.ecm.core.versioning.VersioningService;
 import org.nuxeo.lib.stream.computation.AbstractComputation;
 import org.nuxeo.lib.stream.computation.ComputationContext;
 import org.nuxeo.lib.stream.computation.Record;
@@ -27,6 +23,10 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 public class AITrainedModelComputation extends AbstractComputation {
 
 	protected static final Log log = LogFactory.getLog(AITrainedModelComputation.class);
+
+	protected ModelTrainer getTrainer() {
+		return Framework.getService(AICloudService.class).getTrainer(StreamModelTrainer.NAME);
+	}
 
 	public AITrainedModelComputation(String name, Map<String, String> options) {
 		super(name, 1, 0);
@@ -47,8 +47,8 @@ public class AITrainedModelComputation extends AbstractComputation {
 		}
 
 		final String uuid = properties.getProperty("modelUUID");
-		final String blobURI = properties.getProperty("modelURI");		
-		
+		final String blobURI = properties.getProperty("modelURI");
+
 		RepositoryManager rm = Framework.getService(RepositoryManager.class);
 		UnrestrictedSessionRunner runner = new UnrestrictedSessionRunner(rm.getDefaultRepositoryName()) {
 
@@ -57,19 +57,7 @@ public class AITrainedModelComputation extends AbstractComputation {
 
 				DocumentModel model = session.getDocument(new IdRef(uuid));
 				try {
-
-					Blob blob = AIBlobHelper.resolveBlobFromURI(session, new URI(blobURI));
-					model.setPropertyValue("file:content", (Serializable) blob);
-
-					Map<String, Serializable> info = (Map<String, Serializable>) model.getPropertyValue("ai_model:training_information");
-					info.put("jobId", "");
-					info.put("end", GregorianCalendar.getInstance());					
-					model.setPropertyValue("ai_model:training_information", (Serializable) info);
-										
-					model.putContextData(VersioningService.VERSIONING_OPTION, VersioningOption.MAJOR);
-
-					session.saveDocument(model);
-										
+					getTrainer().updateModelAfterTraining(model, new URI(blobURI));
 				} catch (Exception e) {
 					log.error("Unable to process training completed message", e);
 				}

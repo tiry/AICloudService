@@ -1,7 +1,10 @@
 package org.nuxeo.ai.model.train.sagemaker;
 
+import java.net.URI;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.nuxeo.ai.model.train.JobStatus;
 import org.nuxeo.ai.model.train.ModelTrainer;
 import org.nuxeo.ai.service.AICloudService;
@@ -15,6 +18,8 @@ import org.nuxeo.runtime.api.Framework;
 
 public class SageMakerJobStatusPoller implements EventListener {
 
+	protected static Log log = LogFactory.getLog(SageMakerJobStatusPoller.class);
+
 	@Override
 	public void handleEvent(Event event) {		
 		 if (event.getName().equals("sagemakerpoll")) {			 
@@ -25,12 +30,13 @@ public class SageMakerJobStatusPoller implements EventListener {
 		 }
 	}
 	
+	protected ModelTrainer getTrainer() {
+		return Framework.getService(AICloudService.class).getTrainer(SageMakerTrainer.NAME);
+	}
 	
-	protected void pollSageMaker() {
-		 		 
-		 ModelTrainer trainer = Framework.getService(AICloudService.class).getTrainer(SageMakerTrainer.NAME);
+	protected void pollSageMaker() {		 		 
 		 
-		 final List<JobStatus> jobs = trainer.listJobStatus();		 
+		 final List<JobStatus> jobs = getTrainer().listJobStatus();		 
 		 String repositoryName = Framework.getService(RepositoryManager.class).getDefaultRepositoryName();		 			 
 
 		 new UnrestrictedSessionRunner(repositoryName) {
@@ -48,12 +54,14 @@ public class SageMakerJobStatusPoller implements EventListener {
 		}.runUnrestricted();		
 	}
 
-	protected void updateModelStatus(CoreSession session, DocumentModel model, JobStatus job) {
-		// set the status : where ?
-		
-		// if finished
-		
-		session.saveDocument(model);
+
+	protected void updateModelStatus(CoreSession session, DocumentModel model, JobStatus job) {		
+		URI newModelURI=null; // XXX 
+		try {
+			getTrainer().updateModelAfterTraining(model, newModelURI);
+		} catch (Exception e) {
+			log.error("Unable to update model after training", e);
+		}
 	}
 	
 	protected DocumentModel findModelByJob(CoreSession session, JobStatus job) {

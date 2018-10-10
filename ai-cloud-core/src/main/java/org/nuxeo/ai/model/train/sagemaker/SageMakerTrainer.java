@@ -1,22 +1,5 @@
 package org.nuxeo.ai.model.train.sagemaker;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.sagemaker.AmazonSageMakerAsyncClient;
-import com.amazonaws.services.sagemaker.AmazonSageMakerAsyncClientBuilder;
-import com.amazonaws.services.sagemaker.AmazonSageMakerClient;
-import com.amazonaws.services.sagemaker.AmazonSageMakerClientBuilder;
-import com.amazonaws.services.sagemaker.model.*;
-
-import org.nuxeo.ai.model.train.AbstractModelTrainer;
-import org.nuxeo.ai.model.train.JobStatus;
-import org.nuxeo.ai.model.train.ModelTrainer;
-import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.runtime.aws.NuxeoAWSCredentialsProvider;
-import org.nuxeo.runtime.aws.NuxeoAWSRegionProvider;
-import org.nuxeo.runtime.model.ComponentContext;
-import org.nuxeo.runtime.model.ComponentInstance;
-import org.nuxeo.runtime.model.DefaultComponent;
-
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -24,7 +7,32 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
+
+import org.nuxeo.ai.model.train.AbstractModelTrainer;
+import org.nuxeo.ai.model.train.JobStatus;
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.runtime.aws.NuxeoAWSCredentialsProvider;
+import org.nuxeo.runtime.aws.NuxeoAWSRegionProvider;
+
+import com.amazonaws.auth.AWSCredentialsProvider;
+import com.amazonaws.services.sagemaker.AmazonSageMakerClient;
+import com.amazonaws.services.sagemaker.AmazonSageMakerClientBuilder;
+import com.amazonaws.services.sagemaker.model.AlgorithmSpecification;
+import com.amazonaws.services.sagemaker.model.Channel;
+import com.amazonaws.services.sagemaker.model.CreateTrainingJobRequest;
+import com.amazonaws.services.sagemaker.model.CreateTrainingJobResult;
+import com.amazonaws.services.sagemaker.model.DataSource;
+import com.amazonaws.services.sagemaker.model.ListTrainingJobsRequest;
+import com.amazonaws.services.sagemaker.model.ListTrainingJobsResult;
+import com.amazonaws.services.sagemaker.model.OutputDataConfig;
+import com.amazonaws.services.sagemaker.model.ResourceConfig;
+import com.amazonaws.services.sagemaker.model.S3DataDistribution;
+import com.amazonaws.services.sagemaker.model.S3DataSource;
+import com.amazonaws.services.sagemaker.model.S3DataType;
+import com.amazonaws.services.sagemaker.model.StoppingCondition;
+import com.amazonaws.services.sagemaker.model.Tag;
+import com.amazonaws.services.sagemaker.model.TrainingInputMode;
+import com.amazonaws.services.sagemaker.model.TrainingJobSummary;
 
 /**
  * 
@@ -41,7 +49,7 @@ public class SageMakerTrainer extends AbstractModelTrainer {
     public static final String SAGEMAKER_INSTANCE = "ml.m5.2xlarge";
     public static final int SAGEMAKER_INSTANCE_DISK_SIZE_GB = 5;
 
-    protected Map<String, String> generateParameters(String aiModelId, String[] aiCorpusIds){
+    protected Map<String, String> generateParameters(String aiModelId, List<URI> aiCorpusURIs){
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put("layer1", "300");
         parameters.put("layer2", "50");
@@ -87,7 +95,7 @@ public class SageMakerTrainer extends AbstractModelTrainer {
         return tags;
     }
 
-    protected List<Channel> getDataInfo(String[] aiCorpusIds){
+    protected List<Channel> getDataInfo(List<URI> aiCorpusIds){
         S3DataSource s3Data = new S3DataSource()
                 .withS3Uri("s3://sagemaker-us-east-test/trec-6/data")
                 .withS3DataDistributionType(S3DataDistribution.FullyReplicated)
@@ -137,8 +145,8 @@ public class SageMakerTrainer extends AbstractModelTrainer {
         
         CreateTrainingJobRequest jobRequest = new CreateTrainingJobRequest()
                 .withAlgorithmSpecification(algorithmSpecs)
-                .withHyperParameters(generateParameters(model.getId(), null)) // XXX
-                .withInputDataConfig(getDataInfo(null)) // XXX
+                .withHyperParameters(generateParameters(model.getId(), trainingURIs))
+                .withInputDataConfig(getDataInfo(trainingURIs))
                 .withOutputDataConfig(new OutputDataConfig().withS3OutputPath("s3://sagemaker-us-east-test/trec-6/train2"))
                 .withResourceConfig(resources)
                 .withRoleArn(AWS_ROLE)

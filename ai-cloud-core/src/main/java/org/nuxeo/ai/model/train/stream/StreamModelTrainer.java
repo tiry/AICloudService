@@ -17,6 +17,7 @@ import org.nuxeo.runtime.stream.StreamService;
 
 public class StreamModelTrainer extends AbstractModelTrainer {
 
+	public static final String NAME = "stream";
 
 	protected LogManager oplogManager = null;
 
@@ -99,7 +100,7 @@ public class StreamModelTrainer extends AbstractModelTrainer {
 	
 	@Override
 	public String getName() {		
-		return "stream";
+		return NAME;
 	}
 
 }

@@ -5,6 +5,10 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,6 +49,11 @@ public class TestPublish {
 
 		model = session.createDocumentModel("/myCustomerA", "model1", "AI_Model");
 		model.setPropertyValue("file:content", new StringBlob("XXX","tensorflow/model","UTF-8","model.dat"));
+
+		Map<String, String> info = new HashMap<>();
+		info.put("deployer", "dummy");				
+		model.setPropertyValue("ai_model:deployment_information", (Serializable)info);
+		
 		model = session.createDocument(model);
 	}
 
@@ -58,8 +67,9 @@ public class TestPublish {
         
         assertTrue(publishedModel.isVersion());        
         assertEquals("1.0",publishedModel.getVersionLabel());
-        assertNotEquals("", publishedModel.getPropertyValue("dc:source"));
-        assertTrue(((String)publishedModel.getPropertyValue("dc:source")).contains("fakeModelServer"));
+
+		Map<String, String> info = (Map<String, String>) publishedModel.getPropertyValue("ai_model:deployment_information");
+        assertTrue(info.get("endpoint").contains("fakeModelServer"));
      
         model.setPropertyValue("dc:nature", "model");
         model = session.saveDocument(model);
@@ -69,8 +79,8 @@ public class TestPublish {
         
         assertTrue(publishedModel.isVersion());        
         assertEquals("2.0",publishedModel.getVersionLabel());
-        assertNotEquals("", publishedModel.getPropertyValue("dc:source"));
-        assertTrue(((String)publishedModel.getPropertyValue("dc:source")).contains("fakeModelServer"));
+		info = (Map<String, String>) publishedModel.getPropertyValue("ai_model:deployment_information");
+        assertTrue(info.get("endpoint").contains("fakeModelServer"));
                 
         DocumentModelList docs = session.query("select * from Document where ecm:path = '" + model.getPathAsString() + "'");        
         for (DocumentModel doc : docs) {
