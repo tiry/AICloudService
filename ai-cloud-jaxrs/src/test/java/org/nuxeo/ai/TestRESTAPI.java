@@ -41,7 +41,6 @@ import com.google.inject.Inject;
 @Deploy({ "org.nuxeo.ai.ai-cloud-core", "org.nuxeo.ai.ai-cloud-jaxrs" })
 @PartialDeploy(bundle = "studio.extensions.nuxeo-ai-online-services", extensions = {
 		TargetExtensions.ContentTemplate.class })
-// manual deploy
 public class TestRESTAPI extends BaseTest {
 
 	@Inject
@@ -88,6 +87,8 @@ public class TestRESTAPI extends BaseTest {
             assertNotNull(batchId);
         }
 
+        // fist file
+        
         String data = "SomeDataExtractedFromNuxeoDBToFeedTensorFlow";
         String fileSize = String.valueOf(data.getBytes(UTF_8).length);
         Map<String, String> headers = new HashMap<>();
@@ -106,6 +107,27 @@ public class TestRESTAPI extends BaseTest {
             assertEquals("0", node.get("fileIdx").asText());
             assertEquals("normal", node.get("uploadType").asText());
         }        
+
+        // second file
+        data = "SomeDataExtractedFromNuxeoDBToValidateTensorFlow";
+        fileSize = String.valueOf(data.getBytes(UTF_8).length);
+        headers.clear();
+        headers.put("Content-Type", "text/plain");
+        headers.put("X-Upload-Type", "normal");
+        headers.put("X-File-Name", "aidatacheck.bin");
+        headers.put("X-File-Size", fileSize);
+        headers.put("X-File-Type", "application/octet-stream");
+
+        try (CloseableClientResponse response = getResponse(RequestType.POST, "upload/" + batchId + "/1", data,
+                headers)) {
+            assertEquals(Status.CREATED.getStatusCode(), response.getStatus());
+            JsonNode node = mapper.readTree(response.getEntityInputStream());
+            assertEquals("true", node.get("uploaded").asText());
+            assertEquals(batchId, node.get("batchId").asText());
+            assertEquals("1", node.get("fileIdx").asText());
+            assertEquals("normal", node.get("uploadType").asText());
+        }        
+        
         return batchId;
     }
 
@@ -123,8 +145,8 @@ public class TestRESTAPI extends BaseTest {
 				+ "             \"dc:title\":\"My AI DataSet\"," 
 				+ "             \"ai_corpus:documents_count\":1000," 
 				+ "             \"ai_corpus:query\":\"Select * from Whatever\","
-		        + "             \"file:content\" : { \"upload-batch\": \"" + batchId + "\", \"upload-fileId\": \"0\" } "
-
+		        + "             \"ai_corpus:training_data\" : { \"upload-batch\": \"" + batchId + "\", \"upload-fileId\": \"0\" }, "
+		        + "             \"ai_corpus:evaluation_data\" : { \"upload-batch\": \"" + batchId + "\", \"upload-fileId\": \"1\" } "
 		        + "         }" + "     }";
 		
         try (CloseableClientResponse response = getResponse(RequestType.POST, "ai/" + projectId, payload)) {
@@ -137,9 +159,14 @@ public class TestRESTAPI extends BaseTest {
             assertEquals("My AI DataSet", doc.getTitle());
             assertEquals(1000L, doc.getPropertyValue("ai_corpus:documents_count"));  
             
-            Blob blob = (Blob) doc.getPropertyValue("file:content");
+            Blob blob = (Blob) doc.getPropertyValue("ai_corpus:training_data");
             assertNotNull(blob);
-            assertEquals("aidata.bin", blob.getFilename());           
+            assertEquals("aidata.bin", blob.getFilename());    
+            
+            blob = (Blob) doc.getPropertyValue("ai_corpus:evaluation_data");
+            assertNotNull(blob);
+            assertEquals("aidatacheck.bin", blob.getFilename());    
+            
         }
 	}
 

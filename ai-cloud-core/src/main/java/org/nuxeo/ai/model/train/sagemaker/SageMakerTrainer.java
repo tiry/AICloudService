@@ -130,6 +130,9 @@ public class SageMakerTrainer extends AbstractModelTrainer {
     @Override
 	protected String startTraining(DocumentModel model, URI modelURI, List<URI> trainingURIs, List<URI> evaluationURIs) {
 
+    	// enabled polling
+    	SageMakerJobStatusPoller.enabled=true;
+    	
     	AmazonSageMakerClient sagemakerClient = getClient();
 
         // prepare request for training job

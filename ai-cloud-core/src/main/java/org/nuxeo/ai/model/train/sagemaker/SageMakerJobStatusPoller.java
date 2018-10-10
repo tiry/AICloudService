@@ -20,9 +20,11 @@ public class SageMakerJobStatusPoller implements EventListener {
 
 	protected static Log log = LogFactory.getLog(SageMakerJobStatusPoller.class);
 
+	protected static boolean enabled = false;
+	
 	@Override
 	public void handleEvent(Event event) {		
-		 if (event.getName().equals("sagemakerpoll")) {			 
+		 if (event.getName().equals("sagemakerpoll") && enabled) {			 
 			 // XXX do Critical section using KVStore
 			 synchronized (this) {
 				 pollSageMaker();	

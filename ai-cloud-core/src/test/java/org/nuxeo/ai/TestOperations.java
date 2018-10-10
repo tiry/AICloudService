@@ -63,6 +63,5 @@ public class TestOperations {
         
         assertTrue(publishedModel.isVersion());        
         assertEquals("1.0",publishedModel.getVersionLabel());
-        assertNotEquals("", publishedModel.getPropertyValue("dc:source"));      
     }
 }

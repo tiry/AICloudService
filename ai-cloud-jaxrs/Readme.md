@@ -28,5 +28,6 @@ This module contribute to the main Nuxeo API adding the `/api/v1/ai` endpoint
     TRAIN       POST    /api/v1/ai/{project-id}/model/{model-id}/@op/Train
     PUBLISH     POST    /api/v1/ai/{project-id}/model/{model-id}/@op/Publish
     STATUS      POST    /api/v1/ai/{project-id}/model/{model-id}/@op/Status
-    PREDICT     POST    /api/v1/ai/{project-id}/model/{model-id}/@op/Predict
+    
+    PREDICT     POST    /api/v1/ai/{project-id}/model/{model-id}/predict
     
