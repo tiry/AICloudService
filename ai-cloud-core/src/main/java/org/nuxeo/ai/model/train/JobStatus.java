@@ -1,4 +1,4 @@
-package org.nuxeo.ai.sagemaker;
+package org.nuxeo.ai.model.train;
 
 import java.util.Calendar;
 import java.util.Date;

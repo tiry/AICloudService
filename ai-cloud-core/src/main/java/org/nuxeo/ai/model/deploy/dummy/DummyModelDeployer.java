@@ -12,6 +12,11 @@ public class DummyModelDeployer implements ModelDeployer {
 	protected Map<String, URI> deployedModels= new HashMap<>();
 	
 	@Override
+	public String getName() {
+		return "dummy";
+	}
+	
+	@Override
 	public URI deployModel(String modelUUID, URI blobModel) {		
 		deployedModels.put(modelUUID, blobModel);		
 		return buildEndPointURL(modelUUID);

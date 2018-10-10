@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.net.URI;
+import java.util.GregorianCalendar;
 import java.util.Map;
 import java.util.Properties;
 
@@ -46,10 +47,8 @@ public class AITrainedModelComputation extends AbstractComputation {
 		}
 
 		final String uuid = properties.getProperty("modelUUID");
-		final String blobURI = properties.getProperty("modelBlob");
-		final String trainingUUID = properties.getProperty("trainingUUID");
+		final String blobURI = properties.getProperty("modelURI");		
 		
-
 		RepositoryManager rm = Framework.getService(RepositoryManager.class);
 		UnrestrictedSessionRunner runner = new UnrestrictedSessionRunner(rm.getDefaultRepositoryName()) {
 
@@ -57,20 +56,20 @@ public class AITrainedModelComputation extends AbstractComputation {
 			public void run() {
 
 				DocumentModel model = session.getDocument(new IdRef(uuid));
-				DocumentModel training = session.getDocument(new IdRef(trainingUUID));
 				try {
 
 					Blob blob = AIBlobHelper.resolveBlobFromURI(session, new URI(blobURI));
 					model.setPropertyValue("file:content", (Serializable) blob);
-					model.setPropertyValue("dc:nature", "trained");
-					
+
+					Map<String, Serializable> info = (Map<String, Serializable>) model.getPropertyValue("ai_model:training_information");
+					info.put("jobId", "");
+					info.put("end", GregorianCalendar.getInstance());					
+					model.setPropertyValue("ai_model:training_information", (Serializable) info);
+										
 					model.putContextData(VersioningService.VERSIONING_OPTION, VersioningOption.MAJOR);
 
 					session.saveDocument(model);
-					
-					training.setPropertyValue("ait:trainingState", "completed");
-					session.saveDocument(training);
-					
+										
 				} catch (Exception e) {
 					log.error("Unable to process training completed message", e);
 				}

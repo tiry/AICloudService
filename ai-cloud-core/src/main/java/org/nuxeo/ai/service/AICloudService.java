@@ -1,5 +1,6 @@
 package org.nuxeo.ai.service;
 
+import org.nuxeo.ai.model.train.ModelTrainer;
 import org.nuxeo.ecm.core.api.DocumentModel;
 
 public interface AICloudService {
@@ -12,6 +13,7 @@ public interface AICloudService {
 
 	public String predict(DocumentModel document, String modelId);
 
-	public String trainModel(DocumentModel trainingConfig);
-
+	public String trainModel(DocumentModel model);
+		
+	public ModelTrainer getTrainer(String engine);
 }

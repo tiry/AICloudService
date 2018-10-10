@@ -1,4 +1,4 @@
-package org.nuxeo.ai.sagemaker;
+package org.nuxeo.ai.model.train.sagemaker;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.sagemaker.AmazonSageMakerAsyncClient;
@@ -7,13 +7,17 @@ import com.amazonaws.services.sagemaker.AmazonSageMakerClient;
 import com.amazonaws.services.sagemaker.AmazonSageMakerClientBuilder;
 import com.amazonaws.services.sagemaker.model.*;
 
-import org.nuxeo.ai.service.ModelTrainerService;
+import org.nuxeo.ai.model.train.AbstractModelTrainer;
+import org.nuxeo.ai.model.train.JobStatus;
+import org.nuxeo.ai.model.train.ModelTrainer;
+import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.runtime.aws.NuxeoAWSCredentialsProvider;
 import org.nuxeo.runtime.aws.NuxeoAWSRegionProvider;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -28,8 +32,10 @@ import java.util.concurrent.ExecutionException;
  * @author tiry
  *
  */
-public class SageMakerTrainer extends DefaultComponent implements ModelTrainerService {
+public class SageMakerTrainer extends AbstractModelTrainer {
 
+	public static final String NAME = "sagemaker";
+	
 	public static final String AWS_ROLE = "arn:aws:iam::783725821734:role/service-role/AmazonSageMaker-ExecutionRole-20180314T123968";
     public static final String SAGEMAKER_TF_IMAGE = "783725821734.dkr.ecr.us-east-1.amazonaws.com/sagemaker-nxai:1.10-0.0.1-cpu-py2";
     public static final String SAGEMAKER_INSTANCE = "ml.m5.2xlarge";
@@ -112,9 +118,9 @@ public class SageMakerTrainer extends DefaultComponent implements ModelTrainerSe
         return (AmazonSageMakerClient) builder.build();
     }
     
-    
+
     @Override
-    public String train(String ModelId, String[] aiCorpusIds, String[] aiCorpusEvIds) {
+	protected String startTraining(DocumentModel model, URI modelURI, List<URI> trainingURIs, List<URI> evaluationURIs) {
 
     	AmazonSageMakerClient sagemakerClient = getClient();
 
@@ -127,10 +133,12 @@ public class SageMakerTrainer extends DefaultComponent implements ModelTrainerSe
                 .withInstanceType(SAGEMAKER_INSTANCE)
                 .withVolumeSizeInGB(SAGEMAKER_INSTANCE_DISK_SIZE_GB);
 
+        //XXX
+        
         CreateTrainingJobRequest jobRequest = new CreateTrainingJobRequest()
                 .withAlgorithmSpecification(algorithmSpecs)
-                .withHyperParameters(generateParameters(ModelId, aiCorpusIds))
-                .withInputDataConfig(getDataInfo(aiCorpusIds))
+                .withHyperParameters(generateParameters(model.getId(), null)) // XXX
+                .withInputDataConfig(getDataInfo(null)) // XXX
                 .withOutputDataConfig(new OutputDataConfig().withS3OutputPath("s3://sagemaker-us-east-test/trec-6/train2"))
                 .withResourceConfig(resources)
                 .withRoleArn(AWS_ROLE)
@@ -154,9 +162,9 @@ public class SageMakerTrainer extends DefaultComponent implements ModelTrainerSe
     	
     	for (TrainingJobSummary job: list.getTrainingJobSummaries()) {
     		JobStatus status = new JobStatus(job.getTrainingJobArn());
-    		status.status = job.getTrainingJobStatus();
-    		status.startDate = job.getCreationTime();
-    		status.endDate = job.getTrainingEndTime();
+//    		status.status = job.getTrainingJobStatus();
+//    		status.startDate = job.getCreationTime();
+//    		status.endDate = job.getTrainingEndTime();
     		jobs.add(status);    		
     	}    	
     	
@@ -165,4 +173,9 @@ public class SageMakerTrainer extends DefaultComponent implements ModelTrainerSe
     	
     	return jobs;
     }
+
+	@Override
+	public String getName() {		
+		return NAME;
+	}
 }

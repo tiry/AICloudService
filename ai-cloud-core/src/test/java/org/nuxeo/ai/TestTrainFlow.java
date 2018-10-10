@@ -1,13 +1,15 @@
 package org.nuxeo.ai;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.Serializable;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.time.Duration;
+import java.util.Calendar;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -15,11 +17,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ai.blob.AIBlobHelper;
+import org.nuxeo.ai.model.train.stream.StreamModelTrainer;
 import org.nuxeo.ai.service.AICloudService;
+import org.nuxeo.ai.service.AICloudServiceImpl;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.lib.stream.computation.Record;
@@ -58,29 +61,31 @@ public class TestTrainFlow {
 
 	protected DocumentModel dataset;
 
-	protected DocumentModel notebook;
-
 	@Before
 	public void doBefore() throws Exception {
 
+		// register the test fake Trainer
+		AICloudServiceImpl component= (AICloudServiceImpl) Framework.getRuntime().getComponent("org.nuxeo.ai.AICloudService");
+		component.registerTrainer(new StreamModelTrainer());
+		
 		DocumentModel containerA = session.createDocumentModel("/", "myCustomerA", "AIResourcesContainer");
 		containerA.setPropertyValue("airc:projectid", "001");
 		containerA = session.createDocument(containerA);
 
-		model = session.createDocumentModel("/myCustomerA", "model1", "AI_Model");
-		model.setPropertyValue("file:content", new StringBlob("XXX", "tensorflow/model", "UTF-8", "model.dat"));
-		model = session.createDocument(model);
-
+		
+		// create a dummy dataset
 		dataset = session.createDocumentModel("/myCustomerA", "dataset1", "AI_Corpus");
-		dataset.setPropertyValue("file:content", new StringBlob("XXX", "tensorflow/data", "UTF-8", "data.tf"));
+		dataset.setPropertyValue("ai_corpus:training_data", new StringBlob("XXX", "tensorflow/data", "UTF-8", "data.tf"));
+		dataset.setPropertyValue("ai_corpus:evaluation_data", new StringBlob("YYY", "tensorflow/data", "UTF-8", "data.tf"));		
 		dataset = session.createDocument(dataset);
 
-		notebook = session.createDocumentModel("/myCustomerA", "notebook1", "AI_Training");
-		notebook.setPropertyValue("note:note", "tensorflow/notebook");
-		notebook.setPropertyValue("ait:srcModel", model.getId());
-		notebook.setPropertyValue("ait:srcDataset", dataset.getId());
-		notebook = session.createDocument(notebook);
-
+		// create  Model that will use Stream to simulate training
+		model = session.createDocumentModel("/myCustomerA", "model1", "AI_Model");
+		model.setPropertyValue("file:content", new StringBlob("XXX", "tensorflow/model", "UTF-8", "model.dat"));
+		model.setPropertyValue("ai_model:training_engine", "stream");
+		model.setPropertyValue("ai_model:corpus", new String[]{dataset.getId()});
+		model = session.createDocument(model);
+		
 		session.save();
 		TransactionHelper.commitOrRollbackTransaction();
 		TransactionHelper.startTransaction();
@@ -90,14 +95,16 @@ public class TestTrainFlow {
 	public void testTrain() throws Exception {
 		assertNotNull(aicloudservice);
 
-		String key = aicloudservice.trainModel(notebook);
+		String key = aicloudservice.trainModel(model);
 		assertNotNull(key);
 
 		model = session.getDocument(model.getRef());
-
-		// check that notebook was updated
-		notebook = session.getDocument(notebook.getRef());
-		assertEquals("scheduled", notebook.getPropertyValue("ait:trainingState"));
+				
+		// check that model was updated
+		Map<String, Serializable> info = (Map<String, Serializable>) model.getPropertyValue("ai_model:training_information");
+		assertNotNull(info.get("start"));
+		assertEquals(key, info.get("jobId"));
+		// XXX check lifecycle
 
 		// check that we did send a message		
 		String message = readLogEntry("aiTrainRequests", "aiTrainRequests");
@@ -118,13 +125,13 @@ public class TestTrainFlow {
 		Thread.sleep(2000);					
 		TransactionHelper.startTransaction();
 		
-		String trainingState="";		
+		Calendar endDate=null;		
 		do {			
-			//session.save();
 			Thread.sleep(500);			
-			notebook = session.getDocument(notebook.getRef());
-			trainingState = (String) notebook.getPropertyValue("ait:trainingState");
-		} while (!"completed".equals(trainingState));
+			model = session.getDocument(model.getRef());
+			info = (Map<String, Serializable>) model.getPropertyValue("ai_model:training_information");
+			endDate = (Calendar) info.get("end");			
+		} while (endDate == null);
 
 		
 		model = session.getDocument(model.getRef());
@@ -153,8 +160,7 @@ public class TestTrainFlow {
 
 		properties.put("modelUUID", model.getId());
 		Blob modelBlob = AIBlobHelper.insertBlob(session, "someTFModel");		
-		properties.put("modelBlob", AIBlobHelper.getBlobURI(modelBlob).toString());		
-		properties.put("trainingUUID", notebook.getId());		
+		properties.put("modelURI", AIBlobHelper.getBlobURI(modelBlob).toString());		
 
 		StringWriter writer = new StringWriter();
 		properties.store(writer, null);		
@@ -173,7 +179,6 @@ public class TestTrainFlow {
 		logManager.createIfNotExists("aiTrainResults", 1);
 		LogAppender<Record> appender = logManager.getAppender("aiTrainResults");
 
-		appender.append(key, record);
-		
+		appender.append(key, record);		
 	}
 }

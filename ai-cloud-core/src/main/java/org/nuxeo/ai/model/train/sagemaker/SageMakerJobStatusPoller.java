@@ -2,8 +2,9 @@ package org.nuxeo.ai.model.train.sagemaker;
 
 import java.util.List;
 
-import org.nuxeo.ai.sagemaker.JobStatus;
-import org.nuxeo.ai.service.ModelTrainerService;
+import org.nuxeo.ai.model.train.JobStatus;
+import org.nuxeo.ai.model.train.ModelTrainer;
+import org.nuxeo.ai.service.AICloudService;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.UnrestrictedSessionRunner;
@@ -26,10 +27,10 @@ public class SageMakerJobStatusPoller implements EventListener {
 	
 	
 	protected void pollSageMaker() {
-		 ModelTrainerService trainer = Framework.getService(ModelTrainerService.class);
+		 		 
+		 ModelTrainer trainer = Framework.getService(AICloudService.class).getTrainer(SageMakerTrainer.NAME);
 		 
-		 final List<JobStatus> jobs = trainer.listJobStatus();
-		 
+		 final List<JobStatus> jobs = trainer.listJobStatus();		 
 		 String repositoryName = Framework.getService(RepositoryManager.class).getDefaultRepositoryName();		 			 
 
 		 new UnrestrictedSessionRunner(repositoryName) {
@@ -56,7 +57,7 @@ public class SageMakerJobStatusPoller implements EventListener {
 	}
 	
 	protected DocumentModel findModelByJob(CoreSession session, JobStatus job) {
-		List<DocumentModel> docs = session.query("select * from AI_Model where ai_model:job_name='" + job.getUrn() + "'");
+		List<DocumentModel> docs = session.query("select * from AI_Model where ai_model:traininginfo/jobId='" + job.getUrn() + "'");
 		if (docs.size()>0) {
 			return docs.get(0);					
 		}

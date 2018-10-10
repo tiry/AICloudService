@@ -1,29 +1,22 @@
 package org.nuxeo.ai.model.train.stream;
 
-import java.io.IOException;
 import java.io.StringWriter;
 import java.net.URI;
-import java.net.URISyntaxException;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.nuxeo.ai.blob.AIBlobHelper;
-import org.nuxeo.ai.model.train.ModelTrainer;
-import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ai.model.train.AbstractModelTrainer;
+import org.nuxeo.ai.model.train.JobStatus;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.IdRef;
-import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.lib.stream.computation.Record;
 import org.nuxeo.lib.stream.log.LogAppender;
 import org.nuxeo.lib.stream.log.LogManager;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.stream.StreamService;
 
-public class StreamModelTrainer implements ModelTrainer {
+public class StreamModelTrainer extends AbstractModelTrainer {
 
-	protected static Log log = LogFactory.getLog(StreamModelTrainer.class);
 
 	protected LogManager oplogManager = null;
 
@@ -59,26 +52,27 @@ public class StreamModelTrainer implements ModelTrainer {
 		return appender;
 	}
 
+	
+	protected String encodeURIs(List<URI> URIs) {		
+		StringBuffer sb = new StringBuffer();		
+		for (URI uri: URIs) {
+			sb.append(uri.toString());
+			sb.append(",");
+		}
+		return sb.toString();		
+	}
 
-	public String scheduleTraining(DocumentModel training) {
-
-		String modelUUID = (String) training.getPropertyValue("ait:srcModel");
-		String datasetUUID = (String) training.getPropertyValue("ait:srcDataset");
-
-		DocumentModel model = training.getCoreSession().getDocument(new IdRef(modelUUID));
-		DocumentModel dataset = training.getCoreSession().getDocument(new IdRef(datasetUUID));
-
-		URI modelURI = AIBlobHelper.getBlobURI(model, "file:content");
-		URI corpusURI = AIBlobHelper.getBlobURI(dataset, "file:content");
-
+	
+	protected String startTraining(DocumentModel model, URI modelURI, List<URI> trainingURIs, List<URI> evaluationURIs) {
 		String key = UUID.randomUUID().toString();
 
 		Properties properties = new Properties();
 
 		properties.put("modelUUID", model.getId());
 		properties.put("modelURI", modelURI.toString());
-		properties.put("corpusURI", corpusURI.toString());
-
+		properties.put("trainURIs", encodeURIs(trainingURIs));
+		properties.put("evaluationURIs", encodeURIs(evaluationURIs));
+		
 		Record record;
 		try {
 			StringWriter writer = new StringWriter();
@@ -92,10 +86,20 @@ public class StreamModelTrainer implements ModelTrainer {
 
 		getLogAppender().append(key, record);
 
-		// mark Model Training as scheduled
-		training.setPropertyValue("ait:trainingState", "scheduled");
-		training.getCoreSession().saveDocument(training);
-
 		return key;
+		
 	}
+	
+	
+	@Override
+	public List<JobStatus> listJobStatus() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public String getName() {		
+		return "stream";
+	}
+
 }

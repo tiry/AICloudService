@@ -5,6 +5,11 @@ import java.net.URI;
 import org.nuxeo.ai.model.deploy.ModelDeployer;
 
 public class OCPModelDeployer implements ModelDeployer {
+	
+	@Override
+	public String getName() {
+		return "ocp";
+	}
 
 	@Override
 	public URI deployModel(String modelUUID, URI blobModel) {

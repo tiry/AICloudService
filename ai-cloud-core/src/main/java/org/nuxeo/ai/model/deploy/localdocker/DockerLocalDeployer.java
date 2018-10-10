@@ -30,6 +30,11 @@ public class DockerLocalDeployer implements ModelDeployer {
 		
 	protected final AtomicInteger nextAvailablePort = new AtomicInteger(9090);
 	
+	@Override
+	public String getName() {
+		return "localDocker";
+	}
+
 	public DockerLocalDeployer() {
 		
 		config = DockerClientConfig.createDefaultConfigBuilder()
